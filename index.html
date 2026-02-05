@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super Kings India</title>
+<meta name="title" content="Super Kings India – 15 Minute Lucky Draw Results">
+<meta name="description" content="Try your lucky numbers with your lucky animals. Lion.Cheetah.Tiger!Super Kings India brings live 15-minute lucky draw results with fair, time-based numbers. Check current and past results instantly.">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #5b7f5b;
+  color: white;
+}
+
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  color: yellow;
+  font-size: 34px;
+  margin-bottom: 6px;
+}
+
+.time-box {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+#date {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+#nextDraw {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffeb3b;
+}
+
+.label {
+  text-align: right;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.tiger { background: #f89c2c; }
+.cheetah { background: #d83434; }
+.lion { background: #7a4bc2; }
+
+.switch {
+  background: white;
+  color: black;
+  padding: 6px 14px;
+  border-radius: 20px;
+  min-width: 50px;
+  text-align: center;
+}
+
+.btn {
+  display: block;
+  margin: 35px auto 0;
+  padding: 14px 35px;
+  font-size: 18px;
+  background: #0f8dc3;
+  color: purple;
+  border-radius: 30px;
+  text-decoration: underline;
+  width: fit-content;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Super Kings India</h1>
+
+<div class="time-box">
+  <div id="date"></div>
+  <div id="nextDraw"></div>
+</div>
+
+<div class="label">Results:</div>
+
+<div class="card tiger">
+  Tiger
+  <div class="switch" id="tigerResult">--</div>
+</div>
+
+<div class="card cheetah">
+  Cheetah
+  <div class="switch" id="cheetahResult">--</div>
+</div>
+
+<div class="card lion">
+  Lion
+  <div class="switch" id="lionResult">--</div>
+</div>
+
+<a href="results.html" class="btn">All results</a>
+
+</div>
+
+<script>
+function format12(date) {
+  let h = date.getHours();
+  let m = date.getMinutes().toString().padStart(2, '0');
+  let ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${h}:${m} ${ampm}`;
+}
+
+// DATE + NEXT DRAW
+function updateDrawInfo() {
+  const now = new Date();
+  document.getElementById("date").textContent = now.toDateString();
+
+  let next = new Date(now);
+  let m = now.getMinutes();
+  next.setMinutes(m < 15 ? 15 : m < 30 ? 30 : m < 45 ? 45 : 60, 0, 0);
+
+  document.getElementById("nextDraw").textContent =
+    "Next draw : " + format12(next);
+}
+
+// SEEDED RANDOM LOGIC
+function pad(n) { return n.toString().padStart(2, '0'); }
+
+function seededRandom(seed) {
+  let x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+function getSeed(date) {
+  let m = Math.floor(date.getMinutes() / 15) * 15;
+  return Number(
+    '' +
+    date.getFullYear() +
+    date.getMonth() +
+    date.getDate() +
+    date.getHours() +
+    m
+  );
+}
+
+function updateCurrentResults() {
+  const now = new Date();
+
+  const start = new Date();
+  start.setHours(7, 30, 0, 0);
+
+  const end = new Date();
+  end.setHours(20, 0, 0, 0);
+
+  if (now < start || now > end) {
+    tigerResult.textContent = cheetahResult.textContent = lionResult.textContent = 'OFF';
+    return;
+  }
+
+  const seed = getSeed(now);
+  lionResult.textContent    = pad(Math.floor(seededRandom(seed + 1) * 100));
+  cheetahResult.textContent = pad(Math.floor(seededRandom(seed + 2) * 100));
+  tigerResult.textContent   = pad(Math.floor(seededRandom(seed + 3) * 100));
+}
+
+setInterval(updateDrawInfo, 1000);
+setInterval(updateCurrentResults, 1000);
+updateDrawInfo();
+updateCurrentResults();
+</script>
+
+</body>
+</html>
