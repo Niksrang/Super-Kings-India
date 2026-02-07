@@ -7,9 +7,8 @@
 <meta name="title" content="Super Kings India – 15 Minute Lucky Draw Results">
 <meta name="description" content="Try your lucky numbers with your lucky animals. Lion.Cheetah.Tiger!Super Kings India brings live 15-minute lucky draw results with fair, time-based numbers. Check current and past results instantly.">
 
-<style>
-* { box-sizing: border-box; }
 
+<style>
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -27,31 +26,35 @@ h1 {
   text-align: center;
   color: yellow;
   font-size: 34px;
-  margin-bottom: 6px;
 }
 
 .time-box {
   text-align: center;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 
-#date {
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-#nextDraw {
-  font-size: 18px;
-  font-weight: bold;
-  color: #ffeb3b;
-}
+#date { font-size: 14px; }
+#nextDraw { font-size: 18px; font-weight: bold; color: #ffeb3b; }
 
 .label {
   text-align: right;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 
+/* COUNTDOWN */
+#countdownBox {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+#countdown {
+  font-size: 20px;
+  color: #ffeb3b;
+}
+
+/* RESULT CARDS */
 .card {
   display: flex;
   justify-content: space-between;
@@ -67,7 +70,7 @@ h1 {
 .cheetah { background: #d83434; }
 .lion { background: #7a4bc2; }
 
-.switch {
+.result {
   background: white;
   color: black;
   padding: 6px 14px;
@@ -78,7 +81,7 @@ h1 {
 
 .btn {
   display: block;
-  margin: 35px auto 0;
+  margin: 30px auto 0;
   padding: 14px 35px;
   font-size: 18px;
   background: #0f8dc3;
@@ -91,7 +94,6 @@ h1 {
 </head>
 
 <body>
-
 <div class="container">
 
 <h1>Super Kings India</h1>
@@ -103,19 +105,21 @@ h1 {
 
 <div class="label">Results:</div>
 
+<div id="countdownBox">
+  Next draw in
+  <div id="countdown">--:--</div>
+</div>
+
 <div class="card tiger">
-  Tiger
-  <div class="switch" id="tigerResult">--</div>
+  Tiger <span id="tiger" class="result">--</span>
 </div>
 
 <div class="card cheetah">
-  Cheetah
-  <div class="switch" id="cheetahResult">--</div>
+  Cheetah <span id="cheetah" class="result">--</span>
 </div>
 
 <div class="card lion">
-  Lion
-  <div class="switch" id="lionResult">--</div>
+  Lion <span id="lion" class="result">--</span>
 </div>
 
 <a href="results.html" class="btn">All results</a>
@@ -123,71 +127,98 @@ h1 {
 </div>
 
 <script>
-function format12(date) {
-  let h = date.getHours();
-  let m = date.getMinutes().toString().padStart(2, '0');
-  let ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  return `${h}:${m} ${ampm}`;
-}
+// ---------------- HELPERS ----------------
+function pad(n){ return n.toString().padStart(2,'0'); }
 
-// DATE + NEXT DRAW
-function updateDrawInfo() {
-  const now = new Date();
-  document.getElementById("date").textContent = now.toDateString();
-
-  let next = new Date(now);
-  let m = now.getMinutes();
-  next.setMinutes(m < 15 ? 15 : m < 30 ? 30 : m < 45 ? 45 : 60, 0, 0);
-
-  document.getElementById("nextDraw").textContent =
-    "Next draw : " + format12(next);
-}
-
-// SEEDED RANDOM LOGIC
-function pad(n) { return n.toString().padStart(2, '0'); }
-
-function seededRandom(seed) {
+function seededRandom(seed){
   let x = Math.sin(seed) * 10000;
   return x - Math.floor(x);
 }
 
-function getSeed(date) {
-  let m = Math.floor(date.getMinutes() / 15) * 15;
+function getSeed(date){
+  let m = Math.floor(date.getMinutes()/15)*15;
   return Number(
-    '' +
-    date.getFullYear() +
-    date.getMonth() +
-    date.getDate() +
-    date.getHours() +
-    m
+    ''+date.getFullYear()+date.getMonth()+date.getDate()+date.getHours()+m
   );
 }
 
-function updateCurrentResults() {
-  const now = new Date();
+function format12(date){
+  let h=date.getHours();
+  let m=date.getMinutes().toString().padStart(2,'0');
+  let ampm=h>=12?'PM':'AM';
+  h=h%12||12;
+  return h+':'+m+' '+ampm;
+}
 
-  const start = new Date();
-  start.setHours(8, 0, 0, 0);
+function isBetween(now,h1,m1,h2,m2){
+  let a=new Date(now);
+  let b=new Date(now); b.setHours(h1,m1,0,0);
+  let c=new Date(now); c.setHours(h2,m2,0,0);
+  return a>=b && a<c;
+}
 
-  const end = new Date();
-  end.setHours(20, 0, 0, 0);
+// ---------------- DRAW UPDATE ----------------
+function updateDraw(){
+  const now=new Date();
 
-  if (now < start || now > end) {
-    tigerResult.textContent = cheetahResult.textContent = lionResult.textContent = 'OFF';
+  document.getElementById("date").textContent = now.toDateString();
+
+  const lion=document.getElementById("lion");
+  const cheetah=document.getElementById("cheetah");
+  const tiger=document.getElementById("tiger");
+
+  // RESET AFTER 9:00 PM
+  if (!isBetween(now,8,0,21,0)) {
+    lion.textContent='--';
+    cheetah.textContent='--';
+    tiger.textContent='--';
+    document.getElementById("nextDraw").textContent='Draw closed';
     return;
   }
 
-  const seed = getSeed(now);
-  lionResult.textContent    = pad(Math.floor(seededRandom(seed + 1) * 100));
-  cheetahResult.textContent = pad(Math.floor(seededRandom(seed + 2) * 100));
-  tigerResult.textContent   = pad(Math.floor(seededRandom(seed + 3) * 100));
+  // BEFORE 8 AM
+  if (now.getHours()<8){
+    lion.textContent='--';
+    cheetah.textContent='--';
+    tiger.textContent='--';
+    document.getElementById("nextDraw").textContent='Draw starts at 8:00 AM';
+    return;
+  }
+
+  // ACTIVE DRAW TIME
+  let seed=getSeed(now);
+
+  lion.textContent   = pad(Math.floor(seededRandom(seed+1)*100));
+  cheetah.textContent= pad(Math.floor(seededRandom(seed+2)*100));
+  tiger.textContent  = pad(Math.floor(seededRandom(seed+3)*100));
 }
 
-setInterval(updateDrawInfo, 1000);
-setInterval(updateCurrentResults, 1000);
-updateDrawInfo();
-updateCurrentResults();
+// ---------------- COUNTDOWN ----------------
+function updateCountdown(){
+  const now=new Date();
+
+  if (!isBetween(now,8,0,20,0)){
+    document.getElementById("countdown").textContent='--:--';
+    return;
+  }
+
+  const next=new Date(now);
+  const m=now.getMinutes();
+  next.setMinutes(m<15?15:m<30?30:m<45?45:60,0,0);
+
+  let diff=Math.floor((next-now)/1000);
+  if(diff<0) diff=0;
+
+  document.getElementById("countdown").textContent =
+    String(Math.floor(diff/60)).padStart(2,'0')+':' +
+    String(diff%60).padStart(2,'0');
+}
+
+// ---------------- START ----------------
+setInterval(updateDraw,1000);
+setInterval(updateCountdown,1000);
+updateDraw();
+updateCountdown();
 </script>
 
 </body>
